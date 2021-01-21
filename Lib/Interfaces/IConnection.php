@@ -3,6 +3,7 @@
 namespace Marquee\Interfaces;
 
 use Marquee\Data\Query;
+use Marquee\Exception\Exception;
 
 interface IConnection
 {
@@ -10,13 +11,17 @@ interface IConnection
 
     public function connect(): void;
 
+    public function tryConnect(?Exception &$exception = null): bool;
+
     public function connected(): bool;
+
+    public function getDriver();
 
     public function disconnect(): void;
 
-    public function query(string $which): Query;
+    public function query(string $className): Query;
 
     public function getCommunicator(): ICommunicator;
 
-    public static function CreateDSN(string $host, ?int $port = null, ?string $password = null, ?string $user = null): string;
+    public static function CreateDsn(string $host, int $port, ?string $password = null, ?string $user = null): string;
 }

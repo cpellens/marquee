@@ -26,16 +26,16 @@ final class Query
     private int         $limit;
     use Serializable;
 
-    public function __construct(IConnection $connection, string $which)
+    public function __construct(IConnection $connection, string $className)
     {
         $this->connection = $connection;
         $this->conditions = [];
         $this->flags      = 0;
 
-        if (class_exists($which)) {
-            $this->class = $which;
+        if (class_exists($className)) {
+            $this->class = $className;
         } else {
-            $this->table = $which;
+            $this->table = $className;
         }
     }
 
@@ -80,6 +80,7 @@ final class Query
     }
 
     /**
+     * @param string|null $type
      * @return WhereCondition[]
      */
     public function getConditions(?string $type = null): array
@@ -106,7 +107,7 @@ final class Query
     public function update(array $fields, ?Entity $entity = null): Query
     {
         if (!is_subclass_of($this->class, Entity::class)) {
-            throw new Exception('Cannot update blank object');
+            throw new Exception('Cannot update non-entity object');
         }
 
         $class = $this->class;

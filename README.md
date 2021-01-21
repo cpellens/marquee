@@ -33,7 +33,7 @@ class ContactInfo extends Entity {
     }
 }
 
-$redis = new RedisConnection(RedisConnection::CreateDSN('127.0.0.1'));
+$redis = new RedisConnection(RedisConnection::CreateDsn('127.0.0.1'));
 
 if ($redis->tryConnect($e)) {
     $user = $redis->query(User::class)->create([

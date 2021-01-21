@@ -13,7 +13,8 @@
   "require":           {
     "symfony/inflector": "^5.2",
     "ext-redis":         "*",
-    "ext-json":          "*"
+    "ext-json":          "*",
+    "ext-pdo":           "*"
   },
   "autoload":          {
     "psr-4": {

@@ -18,7 +18,7 @@ class Exception extends \Exception implements Throwable
     public function __construct($format, ...$params)
     {
         parent::__construct(is_string($format)
-                                ? ($params ? call_user_func_array('sprintf', $params) : $format)
+                                ? (count($params) ? call_user_func_array('sprintf', $params) : $format)
                                 : $format->getMessage());
     }
 

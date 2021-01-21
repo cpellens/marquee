@@ -28,14 +28,8 @@ trait Serializable
                     $value = new Relationship($value, $this);
                 }
 
-                $data[ Util::ToSnakeCase($matches[ 1 ]) ] =
-                    is_object($value) && method_exists($value, 'getAttributeArray')
-                        ? $value->getAttributeArray()
-                        : (is_object($value)
-                        ? get_class($value)
-                        :
-                        (is_array($value) ? json_encode($value) : (string) $value)
-                    );
+                $key          = Util::ToSnakeCase($matches[ 1 ]);
+                $data[ $key ] = $this->_format($value);
             }
         }
 
@@ -45,5 +39,30 @@ trait Serializable
     public final function __toString(): string
     {
         return json_encode($this->getAttributeArray());
+    }
+
+    protected final function _format($value)
+    {
+        if (is_null($value)) {
+            return null;
+        }
+
+        if (is_object($value)) {
+            if ($value instanceof Entity) {
+                return $value->getAttributeArray();
+            }
+
+            if ($class = get_class($value)) {
+                return $class;
+            } else {
+                return (array) $value;
+            }
+        }
+
+        if (is_array($value)) {
+            return $value;
+        }
+
+        return (string) $value;
     }
 }

@@ -18,7 +18,7 @@ class RedisConnection implements IConnection
 {
     const DSN_PATTERN = '([0-9.]{7,15})(?:\:([0-9]{2,5}))?(?:\/(.+))?';
     protected Redis $redis;
-    private string   $dsn;
+    private string  $dsn;
 
     public function __construct(string $dsn)
     {
@@ -26,7 +26,7 @@ class RedisConnection implements IConnection
         $this->dsn   = $dsn;
     }
 
-    public function getRedisDriver(): Redis
+    public function getDriver(): Redis
     {
         return $this->redis;
     }
@@ -52,7 +52,7 @@ class RedisConnection implements IConnection
         unset($this->redis);
     }
 
-    public static function CreateDSN(string $host, ?int $port = null, ?string $password = null, ?string $user = null): string
+    public static function CreateDsn(string $host, int $port = null, ?string $password = null, ?string $user = null): string
     {
         if ($port && $password) {
             return sprintf('%s:%d/%s', $host, $port, $password);
@@ -65,9 +65,9 @@ class RedisConnection implements IConnection
         return $host;
     }
 
-    public function query(string $which): Query
+    public function query(string $className): Query
     {
-        return new Query($this, $which);
+        return new Query($this, $className);
     }
 
     public function getCommunicator(): ICommunicator

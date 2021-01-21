@@ -30,10 +30,24 @@ class Repository
         $result = $query->where($class::GetPrimaryKeyName(), '=', $id)->get();
 
         if ($row = $result->next()) {
-            return new $class($row);
+            return $row;
         }
 
         return null;
+    }
+
+    public function create(array $data = []): Entity
+    {
+        $class = $this->entityClass;
+        $query = new Query($this->connection, $class);
+
+        $result = $query->create($data);
+
+        while ($row = $result->next()) {
+            return $row;
+        }
+
+        throw new Exception('Could not create user');
     }
 
     public function getConnection(): IConnection

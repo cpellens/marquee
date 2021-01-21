@@ -61,8 +61,8 @@ class RedisCommunicator implements ICommunicator
 
                 foreach ($updates as $condition) {
                     if ($condition instanceof UpdateCondition) {
-                        $this->getConnection()->getRedisDriver()->hSet($key, $condition->getColumn(),
-                                                                       $condition->getTargetValue());
+                        $this->getConnection()->getDriver()->hSet($key, $condition->getColumn(),
+                                                                  $condition->getTargetValue());
                     }
                 }
 
@@ -75,7 +75,7 @@ class RedisCommunicator implements ICommunicator
              * Create
              */
             // Get Max ID
-            $redis = $this->getConnection()->getRedisDriver();
+            $redis = $this->getConnection()->getDriver();
             $ids   = $redis->sMembers($smkey = $this->getKey($query->getTable()->getName(), 'indices'));
             $newId = $ids ? (max($ids) + 1) : 1;
             $class = $query->getClass();
@@ -105,18 +105,18 @@ class RedisCommunicator implements ICommunicator
 
                 if ($table = $query->getTable()) {
                     $key = $this->getKey($table->getName(), $id);
-                    $this->getConnection()->getRedisDriver()->del($key);
-                    $this->connection->getRedisDriver()->sRem($this->getKey($table->getName(), 'indices'), $id);
+                    $this->getConnection()->getDriver()->del($key);
+                    $this->connection->getDriver()->sRem($this->getKey($table->getName(), 'indices'), $id);
                 }
             }
 
             return new QueryResult($results, $query);
         } elseif ($flags === Query::METHOD_TRUNCATE) {
-            $keys   = $this->getConnection()->getRedisDriver()->keys($this->getKey($tableName = $query->getTable()->getName(),
-                                                                                   '*'));
+            $keys   = $this->getConnection()->getDriver()->keys($this->getKey($tableName = $query->getTable()->getName(),
+                                                                              '*'));
             $keys[] = $this->getKey($tableName, 'indices');
 
-            call_user_func_array([ $this->getConnection()->getRedisDriver(), 'del' ], $keys);
+            call_user_func_array([ $this->getConnection()->getDriver(), 'del' ], $keys);
 
             return QueryResult::OK($query);
         }
@@ -127,7 +127,7 @@ class RedisCommunicator implements ICommunicator
     private function getAll(Query $query): Generator
     {
         $tableName = $query->getTable()->getName();
-        $redis     = $this->connection->getRedisDriver();
+        $redis     = $this->connection->getDriver();
         $records   = $redis->sMembers($key = $this->getKey($tableName, 'indices'));
 
         $class = $query->getClass();
@@ -158,7 +158,7 @@ class RedisCommunicator implements ICommunicator
     {
         $conditions = $query->getConditions(WhereCondition::class);
 
-        $redis = $this->getConnection()->getRedisDriver();
+        $redis = $this->getConnection()->getDriver();
         $keys  = $redis->keys($this->getKey($query->getTable()->getName(), '*'));
         $class = $query->getClass();
 

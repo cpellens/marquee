@@ -51,7 +51,7 @@ class Relationship
             return $record;
         }
 
-        throw new Exception('Query returned 0 results');
+        throw new Exception('Query returned 0 results in query [%s]', $this->query);
     }
 
     public function all(): Generator
@@ -78,7 +78,14 @@ class Relationship
 
     public function __toString(): string
     {
-        return sprintf('Relationship(%s -> %s)', get_class($this->entity), $this->query->getTable()->getName());
+        $selfClass = get_class($this->entity);
+
+        if (!is_subclass_of($selfClass, Entity::class)) {
+            throw new Exception('Invalid class [%s]', $selfClass);
+        }
+
+        return sprintf('Relationship(%s[%s] -> %s[%s])', $selfClass, $selfClass::GetTableName(),
+                       $this->query->getClass(), $this->query->getTable()->getName());
     }
 
     public function __invoke(): Query

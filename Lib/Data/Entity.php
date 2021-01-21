@@ -2,9 +2,9 @@
 
 namespace Marquee\Data;
 
+use Closure;
 use Marquee\Core\String\Util;
 use Marquee\Exception\Exception;
-use Marquee\Interfaces\ICommunicator;
 use Marquee\Interfaces\IConnection;
 use Marquee\Traits\Serializable;
 use Symfony\Component\String\Inflector\EnglishInflector;
@@ -14,13 +14,22 @@ abstract class Entity
     use Serializable;
 
     protected static string $tableName;
+    protected static string $primaryKeyName;
     protected array         $data;
     protected bool          $dirty = false;
     private IConnection     $connection;
 
     public function __construct(array $data, IConnection $connection)
     {
-        $this->data       = $data;
+        $columns = array_keys(static::GetProperties());
+
+        $this->data = array_filter($data, fn($value, $key) => in_array(strtolower($key), $columns),
+                                   ARRAY_FILTER_USE_BOTH);
+        foreach ($this->data as $i => $k) {
+            unset($this->data[ $i ]);
+            $this->data[ strtolower($i) ] = $k;
+        }
+
         $this->connection = $connection;
     }
 
@@ -44,14 +53,14 @@ abstract class Entity
     {
         $properties = static::GetProperties();
 
-        if (in_array($key, array_keys($properties)) && isset($this->data[ $key ])) {
+        if (in_array(strtolower($key), array_keys($properties)) && isset($this->data[ $key ])) {
             return $this->data[ $key ];
         }
 
         /**
          * If we have a get$KEY method
          */
-        $getMethodString = sprintf('get%s', $key);
+        $getMethodString = sprintf('get%s', str_replace('_', '', $key));
         if (method_exists($this, $getMethodString)) {
             $possibleQuery = $this->$getMethodString();
 
@@ -62,7 +71,7 @@ abstract class Entity
             return $possibleQuery;
         }
 
-        throw new Exception('Unknown Property [%s]', $key);
+        return null;
     }
 
     public function __set(string $name, $value)
@@ -87,18 +96,22 @@ abstract class Entity
         [ $toPlural ] = array_reverse(explode(' ', $words = Util::PascalToWords($className)));
 
         $inflector = new EnglishInflector();
-        [ $pluralized ] = $inflector->pluralize($toPlural);
+        [ $pluralized ] = array_reverse($inflector->pluralize($toPlural));
 
         return Util::ToSnakeCase(str_replace($toPlural, $pluralized, $words));
     }
 
-    public final static function GetRepository(ICommunicator $communicator): Repository
+    public final static function GetRepository(IConnection $connection): Repository
     {
-        return new Repository($communicator->getConnection(), static::class);
+        return new Repository($connection, static::class);
     }
 
     public final static function GetPrimaryKeyName(): string
     {
+        if (isset(static::$primaryKeyName)) {
+            return static::$primaryKeyName;
+        }
+
         $tableName = static::GetTableName();
         $inflector = new EnglishInflector();
 
@@ -153,6 +166,21 @@ abstract class Entity
         }
     }
 
+    public final function filter(string $property, Closure $callback): self
+    {
+        $data = $this->data;
+
+        foreach ($data as $key => $value) {
+            if (($key === $property) && $value) {
+                $data[ $key ] = $callback($value);
+            } else {
+                $data[ $key ] = $value;
+            }
+        }
+
+        return new static($data, $this->connection);
+    }
+
     abstract public static function Properties(): array;
 
     public function getCreatedAt(): string
@@ -203,8 +231,9 @@ abstract class Entity
         $props = static::Properties();
 
         return array_merge($props, [
-            'created_at' => null,
-            'updated_at' => null,
+            'created_at'                => null,
+            'updated_at'                => null,
+            static::GetPrimaryKeyName() => null,
         ]);
     }
 }
