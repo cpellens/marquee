@@ -34,7 +34,7 @@ This is a work in progress and I invite you to play around with it or make it yo
 
 ## Quick Start / Example
 
-```injectablephp
+```php
 <?php
 
 include 'vendor/autoload.php';
