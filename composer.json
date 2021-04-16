@@ -2,7 +2,7 @@
   "name":              "mwd/marquee",
   "description":       "Entity Framework for MySQL",
   "type":              "library",
-  "license":           "Free 99",
+  "license":           "GPL-3.0+",
   "authors":           [
     {
       "name":  "Michigan Web Development",
